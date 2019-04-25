@@ -1,3 +1,9 @@
+"""
+Adapted from Stanford CS236 source code
+"""
+
+
+
 import numpy as np
 import os
 import shutil
@@ -10,7 +16,6 @@ from HourlyLoadDataset import HourlyLoad2017Dataset
 from ConditionalLoadDataset import ConditionalLoadDataset
 # from LoadDataset2 import LoadDataset2
 import pandas as pd
-
 
 log_2pi = np.log(2*np.pi)
 
