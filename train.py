@@ -1,8 +1,11 @@
 import torch
 from torch import nn 
-from SmallVGG import SmallVGG
+from models.SmallVGG import SmallVGG
 from utils import load_emnist, visualize_samples, visualize_weights
 from solver import Solver
+import torch
+
+
 
 
 def main():
@@ -10,6 +13,10 @@ def main():
     # Define the parameters to use for this model
     split = "bymerge"
     num_epochs = 1
+
+    SAVE_MODEL = True
+    MODEL_NAME = 'test_model.pt'
+    SAVE_PATH = './saved_models/'
 
 
     # the number of classes in each nist split
@@ -29,8 +36,8 @@ def main():
     
     solver.train(num_epochs)
 
-    visualize_weights(model)
-
+    if SAVE_MODEL:
+        torch.save(model.state_dict(), SAVE_PATH+MODEL_NAME)
 
 
 if __name__=='__main__':

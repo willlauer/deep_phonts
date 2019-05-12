@@ -45,7 +45,10 @@ def visualize_samples(loader):
 	plt.show()
 
 
-def visualize_weights(model):
+def visualize_weights(path):
 
-	for param in model.parameters():
-		print(type(param.data), param.size())
+	model = torch.load(path)
+
+	# Use random noise to compute the activation at different layers
+	
+	noise = torch.randint(0, 256, (28,28))

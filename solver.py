@@ -33,6 +33,22 @@ class Solver:
 
 
 
+
+    def transfer(self):
+
+        """
+        Assuming we have a pre-trained model from the result of train(), perform style transfer
+
+        :return: None
+        """
+        pass
+
+
+
+
+
+
+
     def train(self, num_epochs):
 
 
@@ -55,7 +71,7 @@ class Solver:
                     break
 
                 optimizer.zero_grad()
-                scores = self.model.forward(x)
+                scores, _, _ = self.model.forward(x)
                 loss = F.cross_entropy(scores, y)
 
                 optimizer.zero_grad()
