@@ -29,7 +29,6 @@ def eliminate_whitespace(to_filename, image_buffer=3):
     strech beyond the bounds of the original image are automatically
     filled in as black
     '''
-    import pdb
     img = imageio.imread(to_filename) #read in as np array
     nonwhite_pixels = np.argwhere(img < 255) # not white
     num_cols = nonwhite_pixels.shape[0]
@@ -37,7 +36,6 @@ def eliminate_whitespace(to_filename, image_buffer=3):
     lower = nonwhite_pixels[num_cols-1,0]
     left = np.min(nonwhite_pixels[np.arange(num_cols),1])
     right = np.max(nonwhite_pixels[np.arange(num_cols),1])
-    # pdb.set_trace()
     height = lower - upper
     width = right - left
 
