@@ -66,7 +66,7 @@ class Solver:
         # sample from normal distribution, wrap in a variable, and let requires_grad=True
         noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
 
-        optimizer = torch.optim.SGD([noise], lr=0.01) # optimize the noise
+        optimizer = torch.optim.SGD([noise], lr=0.1) # optimize the noise
 
         store_every = 10000
         for i in tqdm(range(num_iters)):
@@ -83,8 +83,11 @@ class Solver:
             # compute the loss as the sum of the mean-squared-error loss for the content and style
             # TODO: unsure if we should sum across all style representations or just use one
             content_loss = F.mse_loss(content, content_target)
-            style_loss = F.mse_loss(style[1], style_target[1])
-            loss = content_loss + style_loss
+            style_loss = sum([F.mse_loss(style[i], style_target[i]) for i in range(len(style))])
+
+
+            # TODO: hyperparams for content loss and style loss?
+            loss = 0.9 * content_loss + 0.1 * style_loss
 
             if i % store_every == 0:
                 print(content_loss, style_loss)

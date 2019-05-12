@@ -46,8 +46,9 @@ class SmallVGG(nn.Module):
         """
 
         a, b, c, d = r.shape
-        r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
-        r = self.flatten(r)
+        r = r.view(a * b, c * d)
+        #r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
+        #r = self.flatten(r)
         return r.mm(r.t()) / (a * b * c * d)
 
 
