@@ -24,6 +24,10 @@ def main():
     filename = sys.argv[1]
     to_filename = sys.argv[2]
 
+    ### TODO: crop excess whitespace here
+
+    ### TODO: before here
+
     img = Image.open(filename)
     img = img.resize((28,28))
     img.save(to_filename)
@@ -51,6 +55,7 @@ def main():
 
         img = 12.92 * c_linear * np.where(c_linear <= 0.0031308, 1, 0) \
               + (1.055 * (c_linear ** (1/2.4)) - 0.055) * np.where(c_linear > 0.0031308, 1, 0)
+
 
         imageio.imsave(to_filename, img)
 

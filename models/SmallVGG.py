@@ -25,6 +25,7 @@ class SmallVGG(nn.Module):
         # mode should be set to either 'classify' or 'transfer'
         self.mode = 'classify'
 
+
     def flatten(self, x):
         return x.view(x.shape[0],-1)
 

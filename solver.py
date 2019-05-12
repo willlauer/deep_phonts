@@ -1,9 +1,12 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from SmallVGG import SmallVGG
+from models.SmallVGG import SmallVGG
 from utils import visualize_samples
 from tqdm import tqdm
+import imageio
+from torch.autograd import Variable
+from torch.distributions.normal import Normal
 
 class Solver:
 
@@ -14,6 +17,7 @@ class Solver:
         self.train_loader = train_loader
         self.val_loader = val_loader
 
+        self.normal = Normal(0, 1)
 
     def check_accuracy(self):
 
@@ -34,17 +38,51 @@ class Solver:
 
 
 
-    def transfer(self):
+    def transfer(self, num_iters):
 
         """
         Assuming we have a pre-trained model from the result of train(), perform style transfer
+        from some image a to image b
 
         :return: None
         """
-        pass
+
+        content_img = imageio.imread("data/consolas/a2.png")
+        style_img = imageio.imread("data/times_new_roman/a2.png")
+
+        # Compute the content and style of our content and style images
+        _, content_target, _ = self.model.forward(content_img)
+        _, _, style_target = self.model.forward(style_img)
+
+
+        # sample from normal distribution, wrap in a variable, and let requires_grad=True
+        noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
+
+        self.model.mode = 'transfer'    # we now want to compute content and style
 
 
 
+        optimizer = torch.optim.SGD([noise]) # optimize the noise
+
+
+        for i in range(num_iters):
+
+
+            # send our noise forward through the model, computing its style and content
+            optimizer.zero_grad()
+            _, content, style = self.model.forward(noise)
+
+
+            # compute the loss as the sum of the mean-squared-error loss for the content and style
+            # TODO: unsure if we should sum across all style representations or just use one
+            content_loss = F.mse_loss(content, content_target)
+            style_loss = F.mse_loss(style[1], style_target[1])
+            loss = content_loss + style_loss
+
+            # compute gradient with respect to the input and take a step
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
 
 

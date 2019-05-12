@@ -40,6 +40,7 @@ def visualize_samples(loader):
 		plt.tight_layout()
 		plt.imshow(example_data[i][0], cmap='gray', interpolation='none')
 		plt.title('Ground truth: {}'.format(example_targets[i]))
+		print(example_data[i][0])
 		plt.xticks([])
 		plt.yticks([])
 	plt.show()
