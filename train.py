@@ -30,7 +30,7 @@ def main():
     }
 
     model = SmallVGG(classes[split], 1, 3, 3, 1) 
-    train_loader, val_loader = load_emnist(split, False, batch_size_train=5000)
+    train_loader, val_loader = load_emnist(split, True, batch_size_train=5000)
     visualize_samples(val_loader)
     solver = Solver(model, train_loader, val_loader)
     
