@@ -15,7 +15,7 @@ class SmallVGG(nn.Module):
         self.conv2 = nn.Conv2d(c1, c2, (3,3), stride=1, bias=True, padding=1)
         self.conv3 = nn.Conv2d(c2, c3, (3,3), stride=1, bias=True, padding=1)
 
-        self.fc = nn.Linear(c1*28*28, num_classes, bias=True)
+        self.fc = nn.Linear(in_channel*28*28, num_classes, bias=True)
 
         nn.init.kaiming_normal_(self.conv1.weight)
         nn.init.kaiming_normal_(self.conv2.weight)
@@ -44,9 +44,11 @@ class SmallVGG(nn.Module):
         4. Add the scalar product result as an entry to a matrix of size (#filters, #filters)
         5. Repeat for every pair to get the Gram Matrix
         """
+
+        a, b, c, d = r.shape
         r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
         r = self.flatten(r)
-        return r.mm(r.transpose(0,1))
+        return r.mm(r.t()) / (a * b * c * d)
 
 
     def forward(self, x):
@@ -56,6 +58,10 @@ class SmallVGG(nn.Module):
         r1 = F.relu(self.conv1(x))
         r2 = F.relu(self.conv2(r1))
         r3 = F.relu(self.conv3(r2))
+
+        #print(r3.shape)
+        #print(self.flatten(r3).shape) = 5000, 784
+
         scores = self.fc(self.flatten(r3))
 
         if self.mode == 'transfer':

@@ -27,14 +27,13 @@ class Solver:
         self.model.eval()
         with torch.no_grad():
             for x, y in self.val_loader:
-                scores = self.model.forward(x)
+                scores, _, _ = self.model.forward(x)
                 _, preds = scores.max(1)
                 num_correct += (preds == y).sum()
                 num_samples += preds.size(0)
 
             acc = float(num_correct) / num_samples
             print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, acc))
-
 
 
 
@@ -47,8 +46,17 @@ class Solver:
         :return: None
         """
 
-        content_img = imageio.imread("data/consolas/a2.png")
-        style_img = imageio.imread("data/times_new_roman/a2.png")
+        content_img = 255 - torch.tensor(imageio.imread("data/consolas/a2.png")).float()
+        content_img = content_img.expand(1, 1, content_img.shape[0], content_img.shape[1])
+        style_img = 255 - torch.tensor(imageio.imread("data/times_new_roman/a2.png")).float()
+        style_img = style_img.expand(1, 1, style_img.shape[0], style_img.shape[1])
+
+        #print(content_img)
+        #print(style_img)
+
+
+        self.model.mode = 'transfer'    # we now want to compute content and style
+
 
         # Compute the content and style of our content and style images
         _, content_target, _ = self.model.forward(content_img)
@@ -58,14 +66,13 @@ class Solver:
         # sample from normal distribution, wrap in a variable, and let requires_grad=True
         noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
 
-        self.model.mode = 'transfer'    # we now want to compute content and style
+        optimizer = torch.optim.SGD([noise], lr=0.01) # optimize the noise
 
+        store_every = 10000
+        for i in tqdm(range(num_iters)):
 
-
-        optimizer = torch.optim.SGD([noise]) # optimize the noise
-
-
-        for i in range(num_iters):
+            if i % store_every == 0:
+                imageio.imwrite('transfer_checkpoint_images/noise{}.jpg'.format(i), noise.data.squeeze())
 
 
             # send our noise forward through the model, computing its style and content
@@ -79,10 +86,17 @@ class Solver:
             style_loss = F.mse_loss(style[1], style_target[1])
             loss = content_loss + style_loss
 
+            if i % store_every == 0:
+                print(content_loss, style_loss)
+
             # compute gradient with respect to the input and take a step
             optimizer.zero_grad()
-            loss.backward()
+            loss.backward(retain_graph=True)
             optimizer.step()
+
+
+
+
 
 
 
@@ -90,13 +104,13 @@ class Solver:
     def train(self, num_epochs):
 
 
-        print_every = 10
+        print_every = 1000
 
         optimizer = torch.optim.Adam(self.model.parameters())
 
 
         # stop at ct == debug_stop_count if we're tryna end early
-        debug_stop_count = 10
+        debug_stop_count = -1
 
 
         for ep in range(num_epochs):
@@ -105,6 +119,7 @@ class Solver:
             print('Epoch {}'.format(ep))
             for x,y in self.train_loader:
 
+                print(ct)
                 if ct == debug_stop_count:
                     break
 

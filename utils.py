@@ -4,6 +4,19 @@ import torch.nn.functional as F
 import torchvision
 import matplotlib.pyplot as plt
 
+class ContentLoss(nn.Module):
+	"""
+	From pytorch tutorial
+	"""
+	def __init__(self, target,):
+		super(ContentLoss, self).__init__()
+		self.target = target.detach()
+
+	def forward(self, input):
+		self.loss = F.mse_loss(input, self.target)
+		return input
+
+
 def load_emnist(split, needs_download, batch_size_train=1000, batch_size_test=1000):
 
         
@@ -40,7 +53,7 @@ def visualize_samples(loader):
 		plt.tight_layout()
 		plt.imshow(example_data[i][0], cmap='gray', interpolation='none')
 		plt.title('Ground truth: {}'.format(example_targets[i]))
-		print(example_data[i][0])
+		#print(example_data[i][0])
 		plt.xticks([])
 		plt.yticks([])
 	plt.show()
