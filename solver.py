@@ -8,6 +8,9 @@ import imageio
 from torch.autograd import Variable
 from torch.distributions.normal import Normal
 
+
+from hyper_params import params
+
 class Solver:
 
 
@@ -46,14 +49,10 @@ class Solver:
         :return: None
         """
 
-        content_img = 255 - torch.tensor(imageio.imread("data/consolas/a2.png")).float()
+        content_img = torch.tensor(imageio.imread("data/consolas/a2.png")).float()
         content_img = content_img.expand(1, 1, content_img.shape[0], content_img.shape[1])
-        style_img = 255 - torch.tensor(imageio.imread("data/times_new_roman/a2.png")).float()
+        style_img = torch.tensor(imageio.imread("data/times_new_roman/a2.png")).float()
         style_img = style_img.expand(1, 1, style_img.shape[0], style_img.shape[1])
-
-        #print(content_img)
-        #print(style_img)
-
 
         self.model.mode = 'transfer'    # we now want to compute content and style
 
@@ -66,7 +65,7 @@ class Solver:
         # sample from normal distribution, wrap in a variable, and let requires_grad=True
         noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
 
-        optimizer = torch.optim.SGD([noise], lr=0.1) # optimize the noise
+        optimizer = torch.optim.SGD([noise], lr=params["transfer_lr"]) # optimize the noise
 
         store_every = 10000
         for i in tqdm(range(num_iters)):
@@ -74,20 +73,15 @@ class Solver:
             if i % store_every == 0:
                 imageio.imwrite('transfer_checkpoint_images/noise{}.jpg'.format(i), noise.data.squeeze())
 
-
             # send our noise forward through the model, computing its style and content
             optimizer.zero_grad()
             _, content, style = self.model.forward(noise)
 
-
             # compute the loss as the sum of the mean-squared-error loss for the content and style
-            # TODO: unsure if we should sum across all style representations or just use one
             content_loss = F.mse_loss(content, content_target)
             style_loss = sum([F.mse_loss(style[i], style_target[i]) for i in range(len(style))])
 
-
-            # TODO: hyperparams for content loss and style loss?
-            loss = 0.9 * content_loss + 0.1 * style_loss
+            loss = params["content_weight"] * content_loss + params["style_weight"] * style_loss
 
             if i % store_every == 0:
                 print(content_loss, style_loss)
@@ -112,10 +106,6 @@ class Solver:
         optimizer = torch.optim.Adam(self.model.parameters())
 
 
-        # stop at ct == debug_stop_count if we're tryna end early
-        debug_stop_count = -1
-
-
         for ep in range(num_epochs):
 
             ct = 0
@@ -123,8 +113,6 @@ class Solver:
             for x,y in self.train_loader:
 
                 print(ct)
-                if ct == debug_stop_count:
-                    break
 
                 optimizer.zero_grad()
                 scores, _, _ = self.model.forward(x)

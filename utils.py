@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import torchvision
 import matplotlib.pyplot as plt
 
+from hyper_params import params
+
 class ContentLoss(nn.Module):
 	"""
 	From pytorch tutorial
