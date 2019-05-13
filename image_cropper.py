@@ -46,11 +46,11 @@ def eliminate_whitespace(to_filename, image_buffer=2):
     vertical_dim_bigger = height > width
     horizontal_dim_bigger = width > height
     if vertical_dim_bigger:
-        margin = (height - width) / 2
+        margin = (height - width) // 2
         left -= margin
         right += margin
     elif horizontal_dim_bigger:
-        margin = (width - height) / 2
+        margin = (width - height) // 2
         upper -= margin
         lower += margin
     left -= image_buffer
@@ -73,11 +73,10 @@ def main():
     img = Image.open(filename).convert('L')
     img.save(to_filename)
     if image_buffer is not None:
-        img = eliminate_whitespace(to_filename, float(image_buffer))
+        img = eliminate_whitespace(to_filename, int(image_buffer))
     else:
         img = eliminate_whitespace(to_filename)
     img.save(to_filename)
-    input()
     img = img.resize((28,28))
     img.save(to_filename)
 
