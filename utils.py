@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import matplotlib.pyplot as plt
+import imageio
+import numpy as np
 
 from hyper_params import params
 
@@ -57,3 +59,15 @@ def visualize_weights(path):
 	# Use random noise to compute the activation at different layers
 	
 	noise = torch.randint(0, 256, (28,28))
+
+
+def postprocess_image(img_path, threshold=115):
+	'''
+	given grayscale numpy representation of image, based on given threshold
+	will max or min out grayscale pixel values to better visualize result
+	'''
+	# TODO possibly make this better with gradients for edges/curves
+	img = imageio.imread(img_path)
+	img = np.where(img < threshold, 0, 255)
+	imageio.imsave(img_path[:-4] + '_post' + img_path[-4:], img)
+	return img
