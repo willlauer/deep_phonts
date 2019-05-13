@@ -17,7 +17,7 @@ def test(filename, to_filename):
 
     print("Input size {} Output size {}".format(ifile.shape, ofile.shape))
 
-def eliminate_whitespace(to_filename, image_buffer=3):
+def eliminate_whitespace(to_filename, image_buffer=2):
     '''
     finds outermost nonwhite
     pixels and crops out white pixels
@@ -32,6 +32,7 @@ def eliminate_whitespace(to_filename, image_buffer=3):
     img = imageio.imread(to_filename) #read in as np array
     nonwhite_pixels = np.argwhere(img < 255) # not white
     num_cols = nonwhite_pixels.shape[0]
+    
     upper = nonwhite_pixels[0,0]
     lower = nonwhite_pixels[num_cols-1,0]
     left = np.min(nonwhite_pixels[np.arange(num_cols),1])
@@ -39,13 +40,17 @@ def eliminate_whitespace(to_filename, image_buffer=3):
     height = lower - upper
     width = right - left
 
+    assert (height > 0)
+    assert (width > 0)
+
     vertical_dim_bigger = height > width
+    horizontal_dim_bigger = width > height
     if vertical_dim_bigger:
-        margin = (height - width) / 2
+        margin = (height - width) // 2
         left -= margin
         right += margin
-    else:
-        margin = (width - height) / 2
+    elif horizontal_dim_bigger:
+        margin = (width - height) // 2
         upper -= margin
         lower += margin
     left -= image_buffer
@@ -62,15 +67,16 @@ def main():
     print(sys.argv)
     filename = sys.argv[1]
     to_filename = sys.argv[2]
-
-    ### TODO: crop excess whitespace here
-    ### TODO: before here
-
+    image_buffer = None
+    if len(sys.argv) == 4:
+        image_buffer = sys.argv[3]
     img = Image.open(filename).convert('L')
     img.save(to_filename)
-    img = eliminate_whitespace(to_filename)
+    if image_buffer is not None:
+        img = eliminate_whitespace(to_filename, int(image_buffer))
+    else:
+        img = eliminate_whitespace(to_filename)
     img.save(to_filename)
-    # input()
     img = img.resize((28,28))
     img.save(to_filename)
 
