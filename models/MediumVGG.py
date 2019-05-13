@@ -31,6 +31,8 @@ class MediumVGG(nn.Module):
         nn.init.kaiming_normal_(self.conv3.weight)
         nn.init.kaiming_normal_(self.conv4.weight)
         nn.init.kaiming_normal_(self.conv5.weight)
+
+
         nn.init.kaiming_normal_(self.fc.weight)
 
         # mode should be set to either 'classify' or 'transfer'
@@ -67,7 +69,6 @@ class MediumVGG(nn.Module):
         r1 = F.relu(self.conv1(x))
         r2 = F.relu(self.conv2(r1))
         r3 = F.relu(self.conv3(r2))
-
         r4 = F.relu(self.conv4(r3))
         r5 = F.relu(self.conv5(r4))
 
