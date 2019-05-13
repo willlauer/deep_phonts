@@ -92,16 +92,10 @@ class Solver:
             optimizer.step()
 
 
-
-
-
-
-
-
     def train(self, num_epochs):
 
 
-        print_every = 1000
+        print_every = 20
 
         optimizer = torch.optim.Adam(self.model.parameters())
 
