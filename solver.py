@@ -75,9 +75,9 @@ class Solver:
         :return: None
         """
 
-        content_img = torch.tensor(imageio.imread("data/consolas/a2.png")).float()
+        content_img = torch.tensor(imageio.imread("data/comfortaa/b2.png")).float()
         content_img = content_img.expand(1, 1, content_img.shape[0], content_img.shape[1])
-        style_img = torch.tensor(imageio.imread("data/times_new_roman/a2.png")).float()
+        style_img = torch.tensor(imageio.imread("data/times_new_roman/b2.png")).float()
         style_img = style_img.expand(1, 1, style_img.shape[0], style_img.shape[1])
 
         self.model.mode = 'transfer'    # we now want to compute content and style
