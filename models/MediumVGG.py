@@ -3,39 +3,48 @@ from torch import nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-class SmallVGG(nn.Module):
 
-    def __init__(self, num_classes, in_channel, c1, c2, c3):
+class MediumVGG(nn.Module):
+
+    def __init__(self, num_classes, in_channel, c1, c2, c3, c4, c5):
         super().__init__()
 
         # Initialize our layers. Following the VGG architecture, we use 3x3 convolutional layers
         # with stride 1 and pad 1, as well as 2x2 pooling layers
 
-        self.conv1 = nn.Conv2d(in_channel, c1, (3,3), stride=1, bias=True, padding=1)
-        self.conv2 = nn.Conv2d(c1, c2, (3,3), stride=1, bias=True, padding=1)
-        self.conv3 = nn.Conv2d(c2, c3, (3,3), stride=1, bias=True, padding=1)
+        self.conv1 = nn.Conv2d(in_channel, c1, (3, 3), stride=1, bias=True, padding=1)
+        self.conv2 = nn.Conv2d(c1, c2, (3, 3), stride=1, bias=True, padding=1)
+        self.conv3 = nn.Conv2d(c2, c3, (3, 3), stride=1, bias=True, padding=1)
 
-        self.fc = nn.Linear(in_channel*28*28, num_classes, bias=True)
+        self.max_pool = nn.MaxPool2d((2, 2))
+
+        self.conv4 = nn.Conv2d(c3, c4, (3, 3), stride=1, bias=True, padding=1)
+        self.conv5 = nn.Conv2d(c4, c5, (3, 3), stride=1, bias=True, padding=1)
+
+        # Output size is reduced after maxpooling layers
+        self.max_pool_layers = 0 # Modify this appropriately
+        self.output_size = 28 // (2 ** self.max_pool_layers)
+        self.fc = nn.Linear(c5 * self.output_size * self.output_size, num_classes, bias=True)
 
         nn.init.kaiming_normal_(self.conv1.weight)
         nn.init.kaiming_normal_(self.conv2.weight)
         nn.init.kaiming_normal_(self.conv3.weight)
+        nn.init.kaiming_normal_(self.conv4.weight)
+        nn.init.kaiming_normal_(self.conv5.weight)
         nn.init.kaiming_normal_(self.fc.weight)
 
         # mode should be set to either 'classify' or 'transfer'
         self.mode = 'classify'
 
-
     def flatten(self, x):
-        return x.view(x.shape[0],-1)
-
+        return x.view(x.shape[0], -1)
 
     def gram(self, r):
         """
         Params:
             r (tensor): (in_channels x out_channels (i.e. num filters) x width x height)
 
-        Compute the gram matrix using method from 
+        Compute the gram matrix using method from
         https://github.com/aleju/papers/blob/master/neural-nets/A_Neural_Algorithm_for_Artistic_Style.md
 
         1. Take the activations of a layer (passed in as r)
@@ -47,31 +56,29 @@ class SmallVGG(nn.Module):
 
         a, b, c, d = r.shape
         r = r.view(a * b, c * d)
-        #r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
-        #r = self.flatten(r)
+        # r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
+        # r = self.flatten(r)
         return r.mm(r.t()) / (a * b * c * d)
 
-
     def forward(self, x):
-        """
-        Run the forward pass
-        :param x: takes in a minibatch of data
-        :return: a tuple containing the class scores, the content scores, and the style scores for use in style
-                    transfer. Style is a list of gram matrices, and content is the output of the last conv layer
-        """
+
         # {conv2d (pool - maybe?)} x L; fully_connected layer for classification
-        
+
         r1 = F.relu(self.conv1(x))
         r2 = F.relu(self.conv2(r1))
         r3 = F.relu(self.conv3(r2))
 
-        scores = self.fc(self.flatten(r3))
+        r4 = F.relu(self.conv4(r3))
+        r5 = F.relu(self.conv5(r4))
+
+        scores = self.fc(self.flatten(r5))
 
         if self.mode == 'transfer':
 
             # Compute the gram matrices output from each of the convolutional layers (post-activation)
-            style = [self.gram(r1), self.gram(r2), self.gram(r3)]
-            content = r3
+            # Only maybe do this for the early layers
+            style = [self.gram(r1), self.gram(r2), self.gram(r3), self.gram(r4), self.gram(r5)]
+            content = r5
 
         else:
 

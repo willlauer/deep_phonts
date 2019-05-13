@@ -6,17 +6,6 @@ import matplotlib.pyplot as plt
 
 from hyper_params import params
 
-class ContentLoss(nn.Module):
-	"""
-	From pytorch tutorial
-	"""
-	def __init__(self, target,):
-		super(ContentLoss, self).__init__()
-		self.target = target.detach()
-
-	def forward(self, input):
-		self.loss = F.mse_loss(input, self.target)
-		return input
 
 
 def load_emnist(split, needs_download, batch_size_train=1000, batch_size_test=1000):

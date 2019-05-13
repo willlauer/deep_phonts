@@ -23,12 +23,17 @@ class Solver:
         self.normal = Normal(0, 1)
 
     def check_accuracy(self):
-
-        num_correct = 0
-        num_samples = 0
-
+        """
+        Print out the accuracy across the entire validation set, and the accuracy over
+        ten minibatches of the training dataset
+        :return: None
+        """
         self.model.eval()
         with torch.no_grad():
+
+            num_correct = 0
+            num_samples = 0
+
             for x, y in self.val_loader:
                 scores, _, _ = self.model.forward(x)
                 _, preds = scores.max(1)
@@ -36,9 +41,30 @@ class Solver:
                 num_samples += preds.size(0)
 
             acc = float(num_correct) / num_samples
-            print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, acc))
+            print('Validation Set: Got %d / %d correct (%.2f)' % (num_correct, num_samples, acc))
+
+        with torch.no_grad():
+
+            count = 0
+            num_correct = 0
+            num_samples = 0
+
+            for x, y in self.train_loader:
+
+                if count == 6: # do this for 6 batches
+                    break
+                count += 1
+                scores, _, _ = self.model.forward(x)
+                _, preds =  scores.max(1)
+                num_correct += (preds == y).sum()
+                num_samples += preds.size(0)
 
 
+            acc = float(num_correct) / num_samples
+            print('Training Set: Got %d / %d correct (%.2f)' % (num_correct, num_samples, acc))
+
+        # Set the model back into training mode
+        self.model.train()
 
     def transfer(self, num_iters):
 
@@ -64,8 +90,10 @@ class Solver:
 
         # sample from normal distribution, wrap in a variable, and let requires_grad=True
         noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
+        print(content_target.shape)
 
-        optimizer = torch.optim.SGD([noise], lr=params["transfer_lr"]) # optimize the noise
+        #optimizer = torch.optim.SGD([noise], lr=params["transfer_lr"]) # optimize the noise
+        optimizer = torch.optim.Adam([noise], lr=params["transfer_lr"])
 
         store_every = 10000
         for i in tqdm(range(num_iters)):

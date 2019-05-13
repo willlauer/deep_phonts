@@ -1,14 +1,16 @@
 
 
 params = {
-    "content_weight": 0.9,
-    "style_weight": 0.1,
+
+
+    "content_weight": 0.7,
+    "style_weight": 0.3,
 
     "train_num_epochs": 5,
-    "transfer_num_iters": 100000,
+    "transfer_num_iters": 30000,
 
     "train_lr": 0.1,
-    "transfer_lr": 0.001,
+    "transfer_lr": 0.1,
 
     "batch_size_train": 3000,
     "batch_size_val": 1000,
