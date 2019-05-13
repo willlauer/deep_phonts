@@ -94,9 +94,6 @@ class Solver:
 
     def train(self, num_epochs):
 
-
-        print_every = 20
-
         optimizer = torch.optim.Adam(self.model.parameters())
 
 
@@ -119,6 +116,6 @@ class Solver:
 
                 ct += 1
 
-                if ct % print_every == 0:
+                if ct % params["print_every"] == 0:
                     print('Iteration {}, loss {}'.format(ct, loss.item()))
                     self.check_accuracy()
