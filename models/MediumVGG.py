@@ -58,9 +58,18 @@ class MediumVGG(nn.Module):
 
         a, b, c, d = r.shape
         r = r.view(a * b, c * d)
-        # r = torch.transpose(r, 0, 1) # swap so filters are at dimension 0
-        # r = self.flatten(r)
         return r.mm(r.t()) / (a * b * c * d)
+
+    def contrast_loss(self, x):
+        """
+        :param x: input image
+        :return: a metric quantifying how much contrast there is between the pixels. The goal is
+        to promote well-defined edges
+        """
+        pass
+
+
+
 
     def forward(self, x):
 
@@ -81,9 +90,12 @@ class MediumVGG(nn.Module):
             style = [self.gram(r1), self.gram(r2), self.gram(r3), self.gram(r4), self.gram(r5)]
             content = r5
 
+            #contrast = self.contrast_loss(x)
+
         else:
 
             style = None
             content = None
+            #contrast = None
 
-        return scores, content, style
+        return scores, content, style #, contrast

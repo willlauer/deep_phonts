@@ -66,7 +66,7 @@ class Solver:
         # Set the model back into training mode
         self.model.train()
 
-    def transfer(self, num_iters):
+    def transfer(self, num_iters, filename_a, filename_b):
 
         """
         Assuming we have a pre-trained model from the result of train(), perform style transfer
@@ -75,31 +75,35 @@ class Solver:
         :return: None
         """
 
-        content_img = torch.tensor(imageio.imread("data/comfortaa/b2.png")).float()
+        # pull out the letters used and remove the file extension
+        name_a = filename_a[filename_a.rfind('/')+1:][:-4]
+        name_b = filename_a[filename_b.rfind('/')+1:][:-4]
+
+
+
+
+        content_img = torch.tensor(imageio.imread(filename_a)).float()
         content_img = content_img.expand(1, 1, content_img.shape[0], content_img.shape[1])
-        style_img = torch.tensor(imageio.imread("data/times_new_roman/b2.png")).float()
+        style_img = torch.tensor(imageio.imread(filename_b)).float()
         style_img = style_img.expand(1, 1, style_img.shape[0], style_img.shape[1])
 
         self.model.mode = 'transfer'    # we now want to compute content and style
-
 
         # Compute the content and style of our content and style images
         _, content_target, _ = self.model.forward(content_img)
         _, _, style_target = self.model.forward(style_img)
 
-
         # sample from normal distribution, wrap in a variable, and let requires_grad=True
         noise = Variable(self.normal.sample(content_target.shape), requires_grad=True)
         print(content_target.shape)
 
-        #optimizer = torch.optim.SGD([noise], lr=params["transfer_lr"]) # optimize the noise
         optimizer = torch.optim.Adam([noise], lr=params["transfer_lr"])
 
         store_every = 10000
         for i in tqdm(range(num_iters)):
 
-            if i % store_every == 0:
-                imageio.imwrite('transfer_checkpoint_images/noise{}.jpg'.format(i), noise.data.squeeze())
+            if (i+1) % store_every == 0:
+                imageio.imwrite('transfer_checkpoint_images/{}_to_{}_{}.jpg'.format(name_a, name_b, i), noise.data.squeeze())
 
             # send our noise forward through the model, computing its style and content
             optimizer.zero_grad()
@@ -109,9 +113,12 @@ class Solver:
             content_loss = F.mse_loss(content, content_target)
             style_loss = sum([F.mse_loss(style[i], style_target[i]) for i in range(len(style))])
 
-            loss = params["content_weight"] * content_loss + params["style_weight"] * style_loss
 
-            if i % store_every == 0:
+
+            loss = params["content_weight"] * content_loss \
+                   + params["style_weight"] * style_loss
+
+            if (i+1) % store_every == 0:
                 print(content_loss, style_loss)
 
             # compute gradient with respect to the input and take a step
@@ -123,7 +130,6 @@ class Solver:
     def train(self, num_epochs):
 
         optimizer = torch.optim.Adam(self.model.parameters())
-
 
         for ep in range(num_epochs):
 

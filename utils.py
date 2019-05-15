@@ -5,6 +5,7 @@ import torchvision
 import matplotlib.pyplot as plt
 import imageio
 import numpy as np
+import os
 
 from hyper_params import params
 
@@ -71,3 +72,16 @@ def postprocess_image(img_path, threshold=115):
 	img = np.where(img < threshold, 0, 255)
 	imageio.imsave(img_path[:-4] + '_post' + img_path[-4:], img)
 	return img
+
+
+
+
+def run_postprocess():
+	"""
+	In the event that we forget or decide to not use the postprocessing as part of the main script, we can
+	also run this method from the command line
+	:return: None
+	"""
+	for image in os.listdir('./transfer_checkpoint_images'):
+		img_path = './transfer_checkpoint_images/' + image
+		_ = postprocess_image(img_path)

@@ -38,7 +38,6 @@ def main():
         model = MediumVGG(classes[split], 1, 3, 5, 5, 3, 1)
 
 
-
     if sys.argv[2] == '-l': # load model
         model.load_state_dict(torch.load(SAVE_PATH+MODEL_NAME))
         solver = Solver(model, train_loader, val_loader)
@@ -50,8 +49,14 @@ def main():
         torch.save(model.state_dict(), SAVE_PATH+MODEL_NAME)
 
 
-    # run the transfer on out output for 100 iterations
-    solver.transfer(params["transfer_num_iters"])
+    # run style transfer on each of our letter pairs for this model
+    letters = ['a', 'b', 'c', 'd', 'e', 'f']
+
+    for letter in letters:
+
+        solver.transfer(params["transfer_num_iters"],
+                        "data/comfortaa/{}2.png".format(letter),
+                        "data/times_new_roman/{}2.png".format(letter))
 
 
 if __name__=='__main__':
